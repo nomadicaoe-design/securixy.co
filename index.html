@@ -1,0 +1,1050 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Securixy - Protect Your Organisation</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      margin: 0;
+      padding: 0;
+      color: #ffffff;
+      line-height: 1.8;
+      overflow-x: hidden;
+    }
+    nav {
+      background-color: #0a0f1a;
+      color: white;
+      padding: 1.5rem;
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    }
+    nav .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    nav .brand {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+    }
+    nav .brand img {
+      height: 50px;
+      margin-right: 0.5rem;
+    }
+    nav .brand h1 {
+      font-size: 1.8rem;
+      margin: 0 0 0.3rem 0;
+      font-family: 'Roboto', sans-serif;
+      font-weight: 300;
+    }
+    nav .brand .slogan {
+      font-size: 0.9rem;
+      font-family: 'Roboto', sans-serif;
+      font-weight: 300;
+      color: #d81b60; /* Dark pink for neon effect */
+      margin-left: 0.5rem;
+      text-shadow: 0 0 5px #d81b60, 0 0 10px #d81b60, 0 0 15px #ff69b4, 0 0 20px #ffffff; /* Neon glow */
+    }
+    nav ul {
+      list-style: none;
+      display: flex;
+      gap: 1.5rem;
+    }
+    nav a {
+      color: white;
+      text-decoration: none;
+      transition: color 0.3s;
+      font-family: 'Roboto', sans-serif;
+      font-weight: 300;
+    }
+    nav a:hover {
+      color: #90cdf4;
+    }
+    .hero {
+      height: 70vh;
+      position: relative;
+      overflow: hidden;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 0;
+    }
+    .hero .background {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(180deg, #0a0f1a 0%, #1a2a44 50%, #501a2a 100%);
+      z-index: 0;
+      animation: backgroundMotion 10s ease-in-out infinite;
+    }
+    @keyframes backgroundMotion {
+      0% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+      100% { transform: translateY(0); }
+    }
+    .hero .content {
+      position: relative;
+      z-index: 10;
+      padding: 0 1.5rem;
+    }
+    .hero .breach-line {
+      font-size: 1.1rem;
+      color: #718096;
+      margin-bottom: 0.75rem;
+      line-height: 1.8;
+    }
+    .hero h2 {
+      font-size: 3.5rem;
+      margin-bottom: 1.5rem;
+      font-weight: 300;
+      color: #ffffff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      white-space: normal;
+      line-height: 1.4;
+    }
+    .hero h2 .underline {
+      font-weight: 700;
+      text-decoration: underline;
+    }
+    .hero h2 span {
+      margin: 0 0.3rem;
+    }
+    .hero a {
+      background-color: #ff5e6c;
+      color: #ffffff;
+      padding: 1rem 2rem;
+      text-decoration: none;
+      border-radius: 9999px;
+      font-weight: 600;
+      font-size: 1.1rem;
+      transition: transform 0.3s, box-shadow 0.3s;
+      display: inline-block;
+      font-family: 'Roboto', sans-serif;
+    }
+    .hero a:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+    }
+    .blocks-section {
+      padding: 3rem 0 5rem 0;
+      background-color: #ffffff;
+      text-align: center;
+      position: relative;
+      z-index: 20;
+      margin-top: -150px;
+    }
+    .blocks-section h2 {
+      font-size: 2.2rem;
+      margin-bottom: 2.5rem;
+      color: #2d3748;
+      font-family: 'Roboto', sans-serif;
+      font-weight: 300;
+      line-height: 1.4;
+    }
+    .blocks {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2rem;
+      padding: 0 1.5rem;
+      position: relative;
+      z-index: 20;
+    }
+    .block {
+      width: 300px;
+      height: 180px;
+      position: relative;
+      overflow: hidden;
+      border: 3px solid #ffffff; /* White border */
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); /* Preserve shadow */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: transform 0.3s, box-shadow 0.3s;
+      cursor: pointer;
+      position: relative;
+      z-index: 1;
+      transform: translateY(0);
+      font-family: 'Roboto', sans-serif;
+      flex-direction: column;
+      padding: 0.75rem;
+    }
+    .block img {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      max-width: 100%;
+      max-height: 100%;
+      z-index: 0;
+    }
+    .block .content {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .block span {
+      display: block;
+      text-align: center;
+      font-size: 1rem;
+      line-height: 1.4;
+      color: #ffffff; /* White text */
+      background-color: rgba(0, 0, 0, 0.7); /* Dark shaded background */
+      padding: 0.25rem 0.5rem;
+    }
+    .block:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+    }
+    .block:hover .block-icon {
+      transform: scale(1.1);
+      fill: #90cdf4;
+    }
+    .block .block-icon {
+      width: 40px;
+      height: 40px;
+      margin-bottom: 0.5rem;
+      fill: #2b6cb0;
+      transition: transform 0.3s ease, fill 0.3s ease;
+      position: relative;
+      z-index: 1;
+    }
+    .partners-section {
+      background-color: #ffffff;
+      padding: 3rem 0;
+      overflow: hidden;
+      position: relative;
+      z-index: 15;
+      border-top: 1px solid #e2e8f0;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .partners-section .container {
+      position: relative;
+      max-width: 1200px;
+      margin: 0 auto;
+      overflow: hidden;
+    }
+    .partners-section .fade-left,
+    .partners-section .fade-right {
+      position: absolute;
+      top: 0;
+      width: 100px;
+      height: 100%;
+      z-index: 16;
+    }
+    .partners-section .fade-left {
+      left: 0;
+      background: linear-gradient(to right, #ffffff, transparent);
+    }
+    .partners-section .fade-right {
+      right: 0;
+      background: linear-gradient(to left, #ffffff, transparent);
+    }
+    .partners-slider {
+      display: flex;
+      animation: slide 40s linear infinite;
+      width: max-content;
+    }
+    @keyframes slide {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+    .partners-slider img {
+      height: 80px;
+      margin: 0 1.5rem;
+      filter: grayscale(100%);
+      opacity: 0.7;
+      display: inline-block;
+      background-color: transparent;
+      transition: filter 0.3s, opacity 0.3s;
+    }
+    .partners-slider img:hover {
+      filter: none;
+      opacity: 1;
+    }
+    section {
+      padding: 5rem 0;
+      text-align: center;
+    }
+    .about, .contact {
+      background-color: #edf2f7;
+      color: #2d3748;
+    }
+    h2 {
+      font-size: 2.2rem;
+      margin-bottom: 2rem;
+      color: #2d3748;
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      line-height: 1.4;
+    }
+    h3 {
+      font-size: 1.6rem;
+      margin-bottom: 1.2rem;
+      color: #2b6cb0;
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      line-height: 1.4;
+    }
+    .services {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 2.5rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .service {
+      background-color: white;
+      padding: 2rem;
+      border-radius: 0.5rem;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s;
+      font-family: 'Roboto', sans-serif;
+    }
+    .service:hover {
+      transform: translateY(-5px);
+    }
+    .service h3 {
+      font-size: 1.6rem;
+      margin-bottom: 0.75rem;
+      color: #2b6cb0;
+      font-weight: 600;
+    }
+    .service p {
+      font-size: 1rem;
+      color: #4a5568;
+      font-weight: 300;
+      line-height: 1.8;
+    }
+    .newsletter {
+      background-color: #edf2f7;
+      padding: 3rem;
+      text-align: center;
+      margin-top: 2.5rem;
+    }
+    .newsletter h3 {
+      font-size: 1.6rem;
+      margin-bottom: 1.2rem;
+      color: #2d3748;
+      font-family: 'Roboto', sans-serif;
+      font-weight: 300;
+      line-height: 1.4;
+    }
+    .newsletter form {
+      display: flex;
+      justify-content: center;
+      gap: 0.75rem;
+    }
+    .newsletter input {
+      padding: 0.75rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 0.25rem;
+      font-size: 1rem;
+      font-family: 'Roboto', sans-serif;
+      font-weight: 300;
+      width: 60%;
+      max-width: 300px;
+      line-height: 1.8;
+    }
+    .newsletter button {
+      padding: 0.75rem 1.5rem;
+      background-color: #2b6cb0;
+      color: white;
+      border: none;
+      border-radius: 0.25rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      font-family: 'Roboto', sans-serif;
+    }
+    .newsletter button:hover {
+      background-color: #2c5282;
+    }
+    .newsletter .error {
+      color: #c53030;
+      font-size: 0.9rem;
+      margin-top: 0.75rem;
+      display: none;
+      line-height: 1.8;
+    }
+    .contact form {
+      max-width: 500px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
+    }
+    .contact form .dual-input {
+      display: flex;
+      gap: 1.2rem;
+    }
+    .contact input, .contact textarea, .contact select {
+      padding: 0.75rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 0.25rem;
+      font-size: 1rem;
+      font-family: 'Roboto', sans-serif;
+      font-weight: 300;
+      width: 100%;
+      box-sizing: border-box;
+      line-height: 1.8;
+    }
+    .contact select {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23333' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0.75rem center;
+      background-size: 12px;
+    }
+    .contact .checkbox-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin-top: 0.75rem;
+    }
+    .contact .checkbox-group label {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 1rem;
+      color: #2d3748;
+      line-height: 1.8;
+    }
+    .contact .checkbox-group input[type="checkbox"] {
+      width: 1.2rem;
+      height: 1.2rem;
+      margin: 0;
+      accent-color: #2b6cb0;
+    }
+    .contact button {
+      background-color: #2b6cb0;
+      color: white;
+      padding: 0.75rem;
+      border: none;
+      border-radius: 0.25rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      font-family: 'Roboto', sans-serif;
+    }
+    .contact button:hover {
+      background-color: #2c5282;
+    }
+    .details-section {
+      padding: 5rem 0;
+      background-color: #f7fafc;
+      margin: 2.5rem 0;
+      border-radius: 0.25rem;
+      position: relative;
+      overflow: hidden;
+      text-align: left;
+      border: 3px solid #ffffff; /* White border */
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Preserve shadow */
+    }
+    .details-section .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+      position: relative;
+      z-index: 1;
+    }
+    .details-section img {
+      max-width: 100%;
+      height: auto;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: 0;
+      border-radius: 0.25rem;
+    }
+    .details-section .content {
+      position: relative;
+      z-index: 1;
+    }
+    .details-section p {
+      font-size: 1rem;
+      color: #ffffff; /* White text */
+      margin-bottom: 1.2rem;
+      font-weight: 300;
+      line-height: 1.8;
+      background-color: rgba(0, 0, 0, 0.7); /* Dark shaded background */
+      padding: 0.5rem 1rem;
+      display: inline-block;
+    }
+    .details-section .benefits-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2.5rem;
+      margin: 2.5rem 0;
+    }
+    .details-section .benefit {
+      background-color: transparent; /* Remove background to show image */
+      padding: 2rem;
+      border-radius: 0.25rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Preserve shadow */
+      border: 3px solid #ffffff; /* White border */
+      position: relative;
+      overflow: hidden;
+    }
+    .details-section .benefit:hover {
+      transform: translateY(-5px);
+    }
+    .details-section table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 2.5rem 0;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .details-section th, .details-section td {
+      padding: 1.2rem;
+      text-align: left;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .details-section th {
+      background-color: #2b6cb0;
+      color: #ffffff;
+      font-weight: 600;
+    }
+    .details-section .process-timeline {
+      position: relative;
+      margin: 2.5rem 0;
+    }
+    .details-section .process-step {
+      display: flex;
+      align-items: center;
+      margin-bottom: 2.5rem;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+    .details-section .process-step.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .details-section .process-icon {
+      width: 50px;
+      height: 50px;
+      background-color: #2b6cb0;
+      color: #ffffff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 1.2rem;
+      flex-shrink: 0;
+    }
+    .details-section .stats {
+      display: flex;
+      justify-content: space-around;
+      flex-wrap: wrap;
+      margin: 2.5rem 0;
+    }
+    .details-section .stat {
+      text-align: center;
+      padding: 1.2rem;
+      flex: 1 1 200px;
+    }
+    .details-section .percent {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #ffffff; /* White text */
+      display: block;
+      background-color: rgba(0, 0, 0, 0.7); /* Dark shaded background */
+      padding: 0.5rem 1rem;
+    }
+    .details-section .stat:hover .percent {
+      transform: scale(1.1);
+      transition: transform 0.3s ease;
+    }
+    .details-section .stat p {
+      margin-top: 0.75rem;
+      font-size: 1rem;
+      color: #4a5568;
+      line-height: 1.8;
+    }
+    .details-section .accordion {
+      margin: 2.5rem 0;
+    }
+    .details-section .accordion-item {
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .details-section .accordion-header {
+      background-color: rgba(0, 0, 0, 0.7); /* Dark shaded background */
+      padding: 1.2rem;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: background-color 0.3s ease;
+      color: #ffffff; /* White text */
+    }
+    .details-section .accordion-header:hover {
+      background-color: rgba(0, 0, 0, 0.9); /* Darker on hover */
+    }
+    .details-section .accordion-content {
+      padding: 1.2rem;
+      display: none;
+      background-color: rgba(0, 0, 0, 0.7); /* Dark shaded background */
+      color: #ffffff; /* White text */
+    }
+    .details-section .accordion-item.active .accordion-content {
+      display: block;
+    }
+    .details-section .cta {
+      text-align: center;
+      margin-top: 2.5rem;
+    }
+    .details-section .cta a {
+      background-color: #ff5e6c;
+      color: #ffffff;
+      padding: 0.75rem 1.5rem;
+      text-decoration: none;
+      border-radius: 0.25rem;
+      font-weight: 600;
+      transition: background-color 0.3s ease;
+      display: inline-block;
+    }
+    .details-section .cta a:hover {
+      background-color: #e6395a;
+    }
+    .details-section .parallax-bg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(45deg, #0a0f1a, #1a2a44);
+      opacity: 0.1;
+      transform: none;
+    }
+    @media (max-width: 960px) {
+      .blocks {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .contact form .dual-input {
+        flex-direction: column;
+      }
+    }
+    @media (max-width: 640px) {
+      nav ul {
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+      .hero h2 {
+        font-size: 2rem;
+      }
+      .blocks {
+        grid-template-columns: 1fr;
+      }
+      .services {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* New Styles for Solutions Section */
+    .details-section img {
+      max-width: 100%;
+      height: auto;
+      transition: transform 0.3s ease;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: 0;
+      border-radius: 0.25rem;
+    }
+    .details-section img:hover {
+      transform: scale(1.05);
+    }
+    .details-section .overview {
+      margin-bottom: 1.5rem;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+    .details-section.visible .overview {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .details-section details {
+      margin-bottom: 1rem;
+      cursor: pointer;
+    }
+    .details-section summary {
+      font-weight: 600;
+      color: #ffffff; /* White text */
+      list-style: none;
+      position: relative;
+    }
+    .details-section summary::after {
+      content: '\25BC';
+      position: absolute;
+      right: 0;
+      color: #ffffff; /* White text */
+      transition: transform 0.3s;
+    }
+    .details-section details[open] summary::after {
+      transform: rotate(180deg);
+    }
+    .details-section .stat {
+      font-size: 1.5rem;
+      color: #ffffff; /* White text */
+      margin: 1rem 0;
+      background-color: rgba(0, 0, 0, 0.7); /* Dark shaded background */
+      padding: 0.5rem 1rem;
+      display: inline-block;
+      animation: countUp 1.5s ease-out;
+    }
+    @keyframes countUp {
+      from { opacity: 0; transform: scale(0.8); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    .details-section .cta a {
+      background-color: #ff5e6c;
+      color: #ffffff;
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <div class="container">
+      <div class="brand">
+        <img src="logo.png" alt="Securixy Logo">
+        <div>
+          <h1>Securixy</h1>
+          <span class="slogan">Driven by Defence</span>
+        </div>
+      </div>
+      <ul>
+        <li><a href="#home" onclick="scrollToSection('home')">Home</a></li>
+        <li><a href="#about" onclick="scrollToSection('about')">About</a></li>
+        <li><a href="#solutions" onclick="scrollToSection('solutions')">Solutions</a></li>
+        <li><a href="#contact" onclick="scrollToSection('contact')">Contact</a></li>
+      </ul>
+    </div>
+  </nav>
+  <section id="home" class="hero">
+    <div class="background"></div>
+    <div class="container content">
+      <div class="breach-line">Had a breach?</div>
+      <h2><span class="thin">Protect</span> <span class="underline">Your</span> <span class="thin">Organisation</span> <span class="underline">Today</span></h2>
+      <a href="#contact" onclick="scrollToSection('contact')">Get a Demo</a>
+    </div>
+  </section>
+  <section id="blocks-section" class="blocks-section">
+    <div class="container">
+      <h2>Explore Our Solutions</h2>
+      <div class="blocks">
+        <a href="#vulnerability-testing-details" class="block" onclick="scrollToSection('vulnerability-testing-details')">
+          <div class="content">
+            <img src="vulnerability testing101.png" alt="Vulnerability Testing">
+            <span>Vulnerability</span><span>Testing</span>
+          </div>
+        </a>
+        <a href="#user-training-details" class="block" onclick="scrollToSection('user-training-details')">
+          <div class="content">
+            <svg class="block-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="12" cy="8" r="4" fill="#2b6cb0"/>
+              <path d="M6 20h12v2H6z" fill="#1a2a44"/>
+              <path d="M8 14h8v6H8z" fill="none" stroke="#90cdf4" stroke-width="2"/>
+            </svg>
+            <span>User Training</span><span>& Testing</span>
+          </div>
+        </a>
+        <a href="#dark-web-monitoring-details" class="block" onclick="scrollToSection('dark-web-monitoring-details')">
+          <div class="content">
+            <svg class="block-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="12" cy="12" r="8" fill="none" stroke="#90cdf4" stroke-width="2"/>
+              <path d="M12 8a3 3 0 0 0-3 3c0 1.5 2 4 3 4s3-2.5 3-4a3 3 0 0 0-3-3z" fill="#2b6cb0"/>
+              <path d="M9 11h6" fill="none" stroke="#1a2a44" stroke-width="2"/>
+            </svg>
+            <span>Dark Web</span><span>Monitoring</span>
+          </div>
+        </a>
+        <a href="#access-management-details" class="block" onclick="scrollToSection('access-management-details')">
+          <div class="content">
+            <svg class="block-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="8" y="10" width="8" height="10" fill="none" stroke="#90cdf4" stroke-width="2"/>
+              <circle cx="12" cy="6" r="4" fill="#2b6cb0"/>
+              <path d="M10 15h4" fill="none" stroke="#1a2a44" stroke-width="2"/>
+            </svg>
+            <span>Access</span><span>Management</span>
+          </div>
+        </a>
+        <a href="#ransomware-protection-details" class="block" onclick="scrollToSection('ransomware-protection-details')">
+          <div class="content">
+            <img src="ransomewareprotection101.png" alt="Ransomware Protection">
+            <span>Ransomware</span><span>Protection</span>
+          </div>
+        </a>
+        <a href="#email-protection-details" class="block" onclick="scrollToSection('email-protection-details')">
+          <div class="content">
+            <svg class="block-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="4" y="6" width="16" height="12" fill="none" stroke="#90cdf4" stroke-width="2"/>
+              <path d="M4 6l8 6 8-6" fill="none" stroke="#2b6cb0" stroke-width="2"/>
+              <circle cx="18" cy="6" r="3" fill="#1a2a44"/>
+            </svg>
+            <span>Email</span><span>Protection</span>
+          </div>
+        </a>
+      </div>
+    </div>
+  </section>
+  <section class="partners-section">
+    <div class="container">
+      <div class="fade-left"></div>
+      <div class="fade-right"></div>
+      <div class="partners-slider">
+        <img src="partner1.png" alt="Partner 1">
+        <img src="partner2.png" alt="Partner 2">
+        <img src="partner3.png" alt="Partner 3">
+        <img src="partner4.png" alt="Partner 4">
+        <img src="partner5.png" alt="Partner 5">
+        <img src="partner6.png" alt="Partner 6">
+        <img src="partner7.png" alt="Partner 7">
+        <img src="partner8.png" alt="Partner 8">
+        <img src="partner1.png" alt="Partner 1">
+        <img src="partner2.png" alt="Partner 2">
+        <img src="partner3.png" alt="Partner 3">
+        <img src="partner4.png" alt="Partner 4">
+        <img src="partner5.png" alt="Partner 5">
+        <img src="partner6.png" alt="Partner 6">
+        <img src="partner7.png" alt="Partner 7">
+        <img src="partner8.png" alt="Partner 8">
+      </div>
+    </div>
+  </section>
+  <section id="about" class="about">
+    <div class="container">
+      <h2>About us</h2>
+      <p>At Securixy we believe cybersecurity shouldn't be a luxury. Our mission is simple: to defend organisations of all sizes against cyber threats—affordably, effectively, and without compromise.</p>
+      <p>In a world where digital threats are constantly evolving, we bring clarity and protection through cutting-edge technology, expert-driven strategies, and a commitment to keeping security accessible. Whether you're a startup, a non-profit, or an enterprise looking to bolster your defences without breaking budget, Securixy is here to defend.</p>
+      <p>We don’t just protect systems—we build trust, resilience, and peace of mind. For more about Securixy, visit our website and follow us on X @Securiixy.</p>
+    </div>
+  </section>
+  <section id="solutions" class="services">
+    <div class="container">
+      <h2>Our Solutions</h2>
+      <div class="services-grid">
+        <section id="vulnerability-testing-details" class="details-section">
+          <div class="container">
+            <h2>Vulnerability Testing</h2>
+            <div class="content">
+              <img src="vulnerability testing101.png" alt="Vulnerability Testing">
+              <p class="overview">Comprehensive scanning to identify and mitigate security weaknesses in your systems.</p>
+              <details class="accordion-item">
+                <summary>Key Features</summary>
+                <p>Automated scans, real-time alerts, detailed reporting.</p>
+              </details>
+              <details class="accordion-item">
+                <summary>Benefits</summary>
+                <p>Reduce risk exposure, ensure compliance, proactive threat management.</p>
+              </details>
+              <div class="stat">Detect 95% of vulnerabilities in under 24 hours.</div>
+              <div class="cta"><a href="#contact">Schedule a Scan Demo</a></div>
+            </div>
+          </div>
+        </section>
+        <section id="user-training-details" class="details-section">
+          <div class="container">
+            <h2>User Training & Testing</h2>
+            <div class="content">
+              <img src="usertraining.png" alt="User Training & Testing">
+              <p class="overview">Interactive programs to educate and test employees on cybersecurity best practices.</p>
+              <details class="accordion-item">
+                <summary>Key Features</summary>
+                <p>Custom modules, phishing simulations, progress tracking.</p>
+              </details>
+              <details class="accordion-item">
+                <summary>Benefits</summary>
+                <p>Heightened awareness, reduced human error, measurable improvements.</p>
+              </details>
+              <div class="stat">Improve employee awareness by 80%.</div>
+              <div class="cta"><a href="#contact">Start Training Today</a></div>
+            </div>
+          </div>
+        </section>
+        <section id="dark-web-monitoring-details" class="details-section">
+          <div class="container">
+            <h2>Dark Web Monitoring</h2>
+            <div class="content">
+              <img src="darkweb monitoring.png" alt="Dark Web Monitoring">
+              <p class="overview">Continuous surveillance of the dark web for leaked credentials and data.</p>
+              <details class="accordion-item">
+                <summary>Key Features</summary>
+                <p>24/7 monitoring, instant notifications, data breach reports.</p>
+              </details>
+              <details class="accordion-item">
+                <summary>Benefits</summary>
+                <p>Early detection, rapid response, data protection.</p>
+              </details>
+              <div class="stat">Monitor over 1 billion dark web sources daily.</div>
+              <div class="cta"><a href="#contact">Get Monitored Now</a></div>
+            </div>
+          </div>
+        </section>
+        <section id="access-management-details" class="details-section">
+          <div class="container">
+            <h2>Access Management</h2>
+            <div class="content">
+              <img src="Access management.png" alt="Access Management">
+              <p class="overview">Robust controls to manage user permissions and authentication.</p>
+              <details class="accordion-item">
+                <summary>Key Features</summary>
+                <p>MFA, SSO, role-based access.</p>
+              </details>
+              <details class="accordion-item">
+                <summary>Benefits</summary>
+                <p>Enhanced security, streamlined access, audit compliance.</p>
+              </details>
+              <div class="stat">Reduce unauthorized access by 90%.</div>
+              <div class="cta"><a href="#contact">Secure Your Access</a></div>
+            </div>
+          </div>
+        </section>
+        <section id="ransomware-protection-details" class="details-section">
+          <div class="container">
+            <h2>Ransomware Protection</h2>
+            <div class="content">
+              <img src="ransomewareprotection101.png" alt="Ransomware Protection">
+              <p class="overview">Advanced defenses against ransomware attacks with backup and recovery tools.</p>
+              <details class="accordion-item">
+                <summary>Key Features</summary>
+                <p>Encryption, automated backups, threat isolation.</p>
+              </details>
+              <details class="accordion-item">
+                <summary>Benefits</summary>
+                <p>Minimized downtime, data integrity, cost savings.</p>
+              </details>
+              <div class="stat">Recover 99% of data without paying ransom.</div>
+              <div class="cta"><a href="#contact">Protect Against Ransomware</a></div>
+            </div>
+          </div>
+        </section>
+        <section id="email-protection-details" class="details-section">
+          <div class="container">
+            <h2>Email Protection</h2>
+            <div class="content">
+              <img src="email impersonation.png" alt="Email Protection">
+              <p class="overview">Intelligent filtering to block phishing, spam, and malicious attachments.</p>
+              <details class="accordion-item">
+                <summary>Key Features</summary>
+                <p>AI detection, quarantine, user reporting.</p>
+              </details>
+              <details class="accordion-item">
+                <summary>Benefits</summary>
+                <p>Secure communications, reduced threats, productivity boost.</p>
+              </details>
+              <div class="stat">Block 98% of phishing attempts.</div>
+              <div class="cta"><a href="#contact">Safeguard Your Inbox</a></div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </section>
+  <section class="contact">
+    <div class="container">
+      <h2>Contact Us</h2>
+      <form action="https://formspree.io/f/your-form-id" method="POST">
+        <div class="dual-input">
+          <input type="text" name="firstName" placeholder="First Name" required>
+          <input type="text" name="lastName" placeholder="Last Name" required>
+        </div>
+        <input type="email" name="email" placeholder="Email Address" required>
+        <input type="text" name="company" placeholder="Company" required>
+        <textarea name="message" placeholder="How can we help?" rows="5" required></textarea>
+        <div class="checkbox-group">
+          <label><input type="checkbox" name="breach" value="breach"> I'm experiencing a breach!</label>
+          <label><input type="checkbox" name="communications" value="communications"> I agree to receive other communications from Securixy</label>
+        </div>
+        <button type="submit">Send Message</button>
+      </form>
+    </div>
+  </section>
+  <footer>
+    <div class="container">
+      <p>&copy; 2025 Securixy. All rights reserved. <a href="#privacy">Privacy Policy</a> | <a href="#terms">Terms of Service</a></p>
+    </div>
+  </footer>
+  <script>
+    // Simple scroll animation for overview
+    const sections = document.querySelectorAll('.details-section');
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    });
+    sections.forEach(section => observer.observe(section));
+  </script>
+</body>
+</html>
