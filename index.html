@@ -1,0 +1,490 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Securixy - Protect Your Organisation</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      margin: 0;
+      padding: 0;
+      color: #ffffff;
+      line-height: 1.8;
+      overflow-x: hidden;
+    }
+    nav {
+      background-color: #0a0f1a;
+      color: white;
+      padding: 1rem; /* Reduced padding for smaller top bar */
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    }
+    nav .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    nav .brand {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+    }
+    nav .brand img {
+      height: 50px; /* Increased to accommodate rectangular logo with "Securixy" */
+      margin-right: 0.3rem; /* Adjusted margin for better alignment */
+    }
+    nav .brand h1 {
+      margin: 0 0 0.1rem 0; /* Reduced margin, now empty */
+      font-family: 'Roboto', sans-serif;
+      font-weight: 300;
+    }
+    nav .brand .slogan {
+      font-size: 0.8rem; /* Slightly reduced font size */
+      font-family: 'Roboto', sans-serif;
+      font-weight: 300;
+      color: #d81b60; /* Dark pink for neon effect */
+      margin-left: 0.3rem; /* Adjusted margin */
+      margin-top: 0.4rem; /* Increased to move "Driven by Defence" downward under rectangular logo */
+      text-shadow: 0 0 5px #d81b60, 0 0 10px #d81b60, 0 0 15px #ff69b4, 0 0 20px #ffffff; /* Neon glow */
+    }
+    nav ul {
+      list-style: none;
+      display: flex;
+      gap: 1.5rem;
+    }
+    nav a {
+      color: white;
+      text-decoration: none;
+      transition: color 0.3s;
+      font-family: 'Roboto', sans-serif;
+      font-weight: 300;
+      letter-spacing: 0.2rem; /* Increased space between letters */
+    }
+    nav a:hover {
+      color: #90cdf4;
+    }
+    .hero {
+      height: 70vh;
+      position: relative;
+      overflow: hidden;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 0;
+    }
+    .hero .background {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(180deg, #0a0f1a 0%, #1a2a44 50%, #501a2a 100%);
+      z-index: 0;
+      animation: backgroundMotion 10s ease-in-out infinite;
+    }
+    @keyframes backgroundMotion {
+      0% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+      100% { transform: translateY(0); }
+    }
+    .hero .content {
+      position: relative;
+      z-index: 10;
+      padding: 0 1.5rem;
+    }
+    .hero .breach-line {
+      font-size: 1.1rem;
+      color: #718096;
+      margin-bottom: 0.75rem;
+      line-height: 1.8;
+    }
+    .hero h2 {
+      font-size: 3.5rem;
+      margin-bottom: 1.5rem;
+      font-weight: 300;
+      color: #ffffff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      white-space: normal;
+      line-height: 1.4;
+    }
+    .hero h2 .underline {
+      font-weight: 700;
+      text-decoration: underline;
+    }
+    .hero h2 span {
+      margin: 0 0.5rem; /* Increased spacing between words */
+    }
+    .hero a {
+      background: linear-gradient(180deg, #ff5e6c 0%, #501a2a 100%); /* Gradient red matching lower background */
+      color: #ffffff;
+      padding: 1rem 2rem;
+      text-decoration: none;
+      border-radius: 9999px;
+      font-weight: 600;
+      font-size: 1.1rem;
+      transition: transform 0.3s, box-shadow 0.3s;
+      display: inline-block;
+      font-family: 'Roboto', sans-serif;
+    }
+    .hero a:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+    }
+    .blocks-section {
+      padding: 3rem 0 5rem 0;
+      background-color: #ffffff;
+      text-align: center;
+      position: relative;
+      z-index: 20;
+      margin-top: -150px;
+    }
+    .blocks-section h2 {
+      font-size: 2.2rem;
+      margin-bottom: 2.5rem;
+      color: #2d3748;
+      font-family: 'Roboto', sans-serif;
+      font-weight: 300;
+      line-height: 1.4;
+    }
+    .blocks {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2rem;
+      padding: 0 1.5rem;
+      position: relative;
+      z-index: 20;
+    }
+    .block {
+      width: 300px;
+      height: 180px;
+      position: relative;
+      overflow: hidden;
+      border: 3px solid #ffffff; /* White border */
+      border-radius: 8px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5); /* Increased shadow */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: transform 0.3s, box-shadow 0.3s;
+      cursor: pointer;
+      position: relative;
+      z-index: 1;
+      transform: translateY(0);
+      font-family: 'Roboto', sans-serif;
+      flex-direction: column;
+      padding: 0.75rem;
+    }
+    .block .content {
+      position: relative;
+      z-index: 2; /* Ensure content is above background */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .block span {
+      display: block;
+      text-align: center;
+      font-size: 1.2rem; /* Larger text for headers */
+      line-height: 1.4;
+      color: #ffffff; /* White text */
+      text-shadow: 0 0 5px #ffffff, 0 0 10px #ffffff, 0 0 15px #90cdf4; /* Letter shadows for enhancement */
+      background-color: rgba(0, 0, 0, 0.7); /* Dark shaded background */
+      padding: 0.25rem 0.5rem;
+      z-index: 2; /* Ensure text is above background */
+    }
+    .block:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6); /* Enhanced shadow on hover */
+    }
+    .block:hover .block-icon {
+      transform: scale(1.1);
+      fill: #90cdf4;
+    }
+    .block .block-icon {
+      width: 40px;
+      height: 40px;
+      margin-bottom: 0.5rem;
+      fill: #2b6cb0;
+      transition: transform 0.3s ease, fill 0.3s ease;
+      position: relative;
+      z-index: 2; /* Ensure icon is above background */
+    }
+    /* Background images for specific blocks */
+    .block:nth-child(1) {
+      background-image: url('vulnerability testing101.png');
+      background-size: cover; /* Fill the box while preserving aspect ratio */
+      background-position: center; /* Center the image */
+      background-repeat: no-repeat;
+    }
+    .block:nth-child(2) {
+      background-image: url('usertraining.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
+    .block:nth-child(3) {
+      background-image: url('darkweb monitoring.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
+    .block:nth-child(4) {
+      background-image: url('Access management.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
+    .block:nth-child(5) {
+      background-image: url('ransomewareprotection101.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
+    .block:nth-child(6) {
+      background-image: url('email impersonation.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
+    .partners-section {
+      background-color: #ffffff;
+      padding: 3rem 0;
+      overflow: hidden;
+      position: relative;
+      z-index: 15;
+      border-top: 1px solid #e2e8f0;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .partners-section .container {
+      position: relative;
+      max-width: 1200px;
+      margin: 0 auto;
+      overflow: hidden;
+    }
+    .partners-section .fade-left,
+    .partners-section .fade-right {
+      position: absolute;
+      top: 0;
+      width: 100px;
+      height: 100%;
+      z-index: 16;
+    }
+    .partners-section .fade-left {
+      left: 0;
+      background: linear-gradient(to right, #ffffff, transparent);
+    }
+    .partners-section .fade-right {
+      right: 0;
+      background: linear-gradient(to left, #ffffff, transparent);
+    }
+    .partners-slider {
+      display: flex;
+      animation: slide 40s linear infinite;
+      width: max-content;
+    }
+    @keyframes slide {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+    .partners-slider img {
+      height: 80px;
+      margin: 0 1.5rem;
+      filter: grayscale(100%);
+      opacity: 0.7;
+      display: inline-block;
+      background-color: transparent;
+      transition: filter 0.3s, opacity 0.3s;
+    }
+    .partners-slider img:hover {
+      filter: none;
+      opacity: 1;
+    }
+    section {
+      padding: 5rem 0;
+      text-align: center;
+    }
+    .about, .contact {
+      background-color: #edf2f7;
+      color: #2d3748;
+    }
+    h2 {
+      font-size: 2.2rem;
+      margin-bottom: 2rem;
+      color: #2d3748;
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      line-height: 1.4;
+    }
+    h3 {
+      font-size: 1.6rem;
+      margin-bottom: 1.2rem;
+      color: #2b6cb0;
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      line-height: 1.4;
+    }
+    .services {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 2.5rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .service {
+      background-color: white;
+      padding: 2rem;
+      border-radius: 0.5rem;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s;
+      font-family: 'Roboto', sans-serif;
+    }
+    .service:hover {
+      transform: translateY(-5px);
+    }
+    .service h3 {
+      font-size: 1.6rem;
+      margin-bottom: 0.75rem;
+      color: #2b6cb0;
+      font-weight: 600;
+    }
+    .service p {
+      font-size: 1rem;
+      color: #4a5568;
+      font-weight: 300;
+      line-height: 1.8;
+    }
+    .newsletter {
+      background-color: #edf2f7;
+      padding: 3rem;
+      text-align: center;
+      margin-top: 2.5rem;
+    }
+    .newsletter h3 {
+      font-size: 1.6rem;
+      margin-bottom: 1.2rem;
+      color: #2d3748;
+      font-family: 'Roboto', sans-serif;
+      font-weight: 300;
+      line-height: 1.4;
+    }
+    .newsletter form {
+      display: flex;
+      justify-content: center;
+      gap: 0.75rem;
+    }
+    .newsletter input {
+      padding: 0.75rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 0.25rem;
+      font-size: 1rem;
+      font-family: 'Roboto', sans-serif;
+      font-weight: 300;
+      width: 60%;
+      max-width: 300px;
+      line-height: 1.8;
+    }
+    .newsletter button {
+      padding: 0.75rem 1.5rem;
+      background-color: #2b6cb0;
+      color: white;
+      border: none;
+      border-radius: 0.25rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      font-family: 'Roboto', sans-serif;
+    }
+    .newsletter button:hover {
+      background-color: #2c5282;
+    }
+    .newsletter .error {
+      color: #c53030;
+      font-size: 0.9rem;
+      margin-top: 0.75rem;
+      display: none;
+      line-height: 1.8;
+    }
+    .contact form {
+      max-width: 500px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
+    }
+    .contact form .dual-input {
+      display: flex;
+      gap: 1.2rem;
+    }
+    .contact input, .contact textarea, .contact select {
+      padding: 0.75rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 0.25rem;
+      font-size: 1rem;
+      font-family: 'Roboto', sans-serif;
+      font-weight: 300;
+      width: 100%;
+      box-sizing: border-box;
+      line-height: 1.8;
+    }
+    .contact select {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23333' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+      background-repeat: no-referrer;
+      background-position: right 0.75rem center;
+      background-size: 12px;
+    }
+    .contact .
